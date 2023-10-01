@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code Scanner</title>
+    <style>
+        /* Add this style to set the message text color to white */
+        #scanMessage {
+            color: white;
+            display: none;
+        }
+
+        /* Add this style to align buttons at the top */
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+    <h1 id="QR_head">QR Code Scanner</h1>
+    <div class="video_qr">
+        <video id="scanner" style="width: 100%; max-width: 640px;"></video>
+    </div>
+<div class="buttons_down_qr">
+    <button id="switchCamera">Switch Camera</button>
+    <button id="startScan">Start Scanning</button>
+    <button id="closeScanner" style="display: none;">Close Scanner</button>
+</div>
+    <p id="scanMessage">QR code scanned:</p>
+    <p id="name"></p>
+    <p id="college"></p>
+    <p id="mobile"></p>
+    <p id="event"></p>
+    <p id="shauryaID"></p>
+    
+    <!-- Use a div container for buttons -->
+        
+     
+    
+
+    <!-- Include Instascan.js -->
+    <script src="https://cdn.rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+
+    <!-- Include XLSX.js for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
+
+    <script>
+        const scanner = new Instascan.Scanner({ video: document.getElementById('scanner') });
+        let excelDownloaded = false; // Flag to track if the Excel file has been downloaded
+
+        // Initialize variables for camera switching
+        let currentCameraIndex = 0; // Index of the currently active camera
+        const scannedData = new Set(); // Set to store scanned data
+        const exportedData = []; // Array to store data for export
+        const workbook = XLSX.utils.book_new(); // Create a new workbook
+        const ws = XLSX.utils.aoa_to_sheet([['Name', 'College', 'Mobile', 'Event', 'ShauryaID']]); // Create a worksheet
+
+        // Add the worksheet to the workbook
+        XLSX.utils.book_append_sheet(workbook, ws, 'Scanned Data');
+        document.getElementById('startScan').addEventListener('click', function () {
+    Instascan.Camera.getCameras().then(function (cameras) {
+        // Find the back camera, if available
+        const backCamera = cameras.find(camera => camera.name.includes('back'));
+
+        if (backCamera) {
+            scanner.start(backCamera); // Start the back camera
+        } else {
+            console.error('No back camera found.');
+        }
+    }).catch(function (error) {
+        console.error(error);
+    });
+});
+
+
+        function switchCamera() {
+            Instascan.Camera.getCameras().then(function (cameras) {
+                if (cameras.length > 1) {
+                    currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+                    scanner.stop(); // Stop the current scanner
+                    scanner.start(cameras[currentCameraIndex]); // Start the new camera
+                }
+            }).catch(function (error) {
+                console.error(error);
+            });
+        }
+        
+
+        // Function to display a message and ensure it doesn't fade out
+        function displayMessage(message) {
+            const scanMessage = document.getElementById('scanMessage');
+            scanMessage.textContent = message;
+            scanMessage.style.display = 'block';
+        }
+
+        // Listen for scan events
+        scanner.addListener('scan', function (content) {
+            if (scannedData.has(content)) {
+                // Display a message if the QR code has already been scanned
+                displayMessage(`QR code "${content}" has already been used.`);
+            } else {
+                // Display the scanned QR code content on the screen
+                displayMessage(`QR Code Scanned: ${content}`);
+                
+                // Parse the QR code data and remove the part before the colon
+                const qrData = content.split('\n');
+                if (qrData.length === 5) {
+                    const [name, college, mobile, event, shauryaID] = qrData.map(entry => entry.split(':')[1].trim());
+
+                    // Display the parsed data on the screen
+                    document.getElementById('name').textContent = `Name: ${name}`;
+                    document.getElementById('college').textContent = `College: ${college}`;
+                    document.getElementById('mobile').textContent = `Mobile: ${mobile}`;
+                    document.getElementById('event').textContent = `Event: ${event}`;
+                    document.getElementById('shauryaID').textContent = `ShauryaID: ${shauryaID}`;
+
+                    // Show the "Close Scanner" button
+                    document.getElementById('closeScanner').style.display = 'block';
+
+                    // Disable the "Start Scanning" button
+                    document.getElementById('startScan').disabled = true;
+
+                    // Add the QR code content to the set of scanned data and data for export
+                    scannedData.add(content);
+                    exportedData.push([name, college, mobile, event, shauryaID]);
+
+                    // Update the worksheet with the exported data
+                    XLSX.utils.sheet_add_aoa(ws, [exportedData[exportedData.length - 1]], { origin: -1 });
+
+                    // If the Excel file has not been downloaded yet, set the flag to true
+                    if (!excelDownloaded) {
+                        excelDownloaded = true;
+                    }
+                }
+            }
+        });
+        
+
+        // Start scanning when the button is clicked
+        document.getElementById('startScan').addEventListener('click', function () {
+            Instascan.Camera.getCameras().then(function (cameras) {
+                if (cameras.length > 0) {
+                    scanner.start(cameras[0]); // Use the first available camera
+                } else {
+                    console.error('No cameras found.');
+                }
+            }).catch(function (error) {
+                console.error(error);
+            });
+        });
+
+        // Close the scanner and download the Excel file when the "Close Scanner" button is clicked
+        document.getElementById('closeScanner').addEventListener('click', function () {
+            scanner.stop(); // Stop the scanner
+            document.getElementById('closeScanner').style.display = 'none';
+            document.getElementById('startScan').disabled = false; // Enable the "Start Scanning" button
+
+            // If the Excel file has not been downloaded yet, trigger the download
+            
+                XLSX.writeFile(workbook, 'scanned_data.xlsx');
+                excelDownloaded = true;
+        
+        });
+    </script>
+</body>
+</html>
+
+
+
+

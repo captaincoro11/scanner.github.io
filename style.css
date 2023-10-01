@@ -1,0 +1,91 @@
+#QR_head{
+    color:white;
+    display: flex;
+    justify-content: center;
+}
+body{
+    background-color: black;
+}
+
+.video_qr{
+
+    display: flex;
+    justify-content: center;
+ 
+    
+}
+#startScan{
+    background-color: green;
+    border: none;
+    width: 6rem;
+    height: 2.5rem;
+    cursor: pointer;
+    color: white;
+   
+}
+#scanner{
+    width: 100%;
+    max-width: 640px;
+}
+
+#results{
+    color: white;
+
+
+}
+#switchCamera{
+    background-color: green;
+    border: none;
+    width: 6rem;
+    height: 2.5rem;
+    cursor: pointer;
+    color: white;
+
+  
+}
+.button_after{
+    display: flex;
+}
+#scanAgain{
+    background-color: green;
+    border: none;
+    width: 6rem;
+    height: 2.5rem;
+    cursor: pointer;
+    color: white;
+   margin-left: 4.5rem;
+
+}
+#closeScanner{
+    
+    background-color: green;
+    border: none;
+    width: 6rem;
+    height: 2.5rem;
+    cursor: pointer;
+    color: white;
+   margin-left: 4.5rem;
+
+}
+
+.buttons_down_qr{
+    display: flex;
+    margin-top: 2%;
+    justify-content: center;
+    justify-content: space-evenly;
+}
+
+
+ 
+
+
+
+@media (max-width: 768px) {
+    body {
+        font-size: 16px;
+    }
+    #scanner {
+        max-width: 100%;
+        height: auto;
+    }
+}
